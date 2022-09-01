@@ -15,7 +15,7 @@ pub enum Token {
 impl Display for Token {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Token::Space => todo!(),
+            Token::Space => f.write_str(" "),
             Token::Number(n) => write!(f, "{}", n),
             Token::Operator(op) => write!(f, "{}", op),
             Token::LParent => f.write_str("("),
@@ -81,18 +81,9 @@ impl<'a> Tokenizer<'a> {
                 '(' => self.consume(chars, Token::LParent),
                 ')' => self.consume(chars, Token::RParent),
                 '+' | '-' | '*' | '/' | '%' => self.consume(chars, Token::Operator(c.to_string())),
-                '0'..='9' => {
-                    let mut s = String::new();
-                    while let Some(&ch) = chars.peek() {
-                        if ('0'..='9').contains(&ch) {
-                            chars.next();
-                            s.push(ch)
-                        } else {
-                            break;
-                        }
-                    }
-                    Ok(Some(Token::Number(s)))
-                }
+                '0'..='9' => Ok(Some(Token::Number(
+                    self.take_while(chars, |ch| matches!(ch, '0'..='9')),
+                ))),
                 _ => Err(TokenizerError {
                     message: "Unknow symbol".to_string(),
                     line: self.line,
@@ -110,6 +101,23 @@ impl<'a> Tokenizer<'a> {
     ) -> Result<Option<Token>, TokenizerError> {
         chars.next();
         Ok(Some(token))
+    }
+
+    fn take_while(
+        &self,
+        chars: &mut Peekable<Chars<'_>>,
+        mut predicate: impl FnMut(char) -> bool,
+    ) -> String {
+        let mut s = String::new();
+        while let Some(&ch) = chars.peek() {
+            if predicate(ch) {
+                chars.next();
+                s.push(ch);
+            } else {
+                break;
+            }
+        }
+        s
     }
 }
 
