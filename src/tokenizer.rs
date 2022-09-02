@@ -68,6 +68,9 @@ impl<'a> Tokenizer<'a> {
                 Token::Number(n) => self.col += n.len() as u32,
                 Token::Operator(op) => self.col += op.len() as u32,
             }
+            if tok == Token::Space {
+                continue;
+            }
             tokens.push(tok)
         }
 
@@ -133,7 +136,6 @@ mod test {
 
         let expected_tokens = vec![
             Token::Number(String::from("123")),
-            Token::Space,
             Token::Number(String::from("456")),
         ];
 
@@ -148,13 +150,9 @@ mod test {
 
         let expected_tokens = vec![
             Token::Operator(String::from("+")),
-            Token::Space,
             Token::Operator(String::from("-")),
-            Token::Space,
             Token::Operator(String::from("*")),
-            Token::Space,
             Token::Operator(String::from("/")),
-            Token::Space,
             Token::Operator(String::from("%")),
         ];
 
@@ -170,14 +168,10 @@ mod test {
         let expected_tokens = vec![
             Token::LParent,
             Token::Number(String::from("1")),
-            Token::Space,
             Token::Operator(String::from("+")),
-            Token::Space,
             Token::Number(String::from("2")),
             Token::RParent,
-            Token::Space,
             Token::Operator(String::from("*")),
-            Token::Space,
             Token::Number(String::from("3")),
         ];
 
