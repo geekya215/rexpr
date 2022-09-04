@@ -8,8 +8,8 @@ pub enum Token {
     Space,
     Number(String),
     Operator(String),
-    LParent,
-    RParent,
+    LParen,
+    RParen,
 }
 
 impl Display for Token {
@@ -18,8 +18,8 @@ impl Display for Token {
             Token::Space => f.write_str(" "),
             Token::Number(n) => write!(f, "{}", n),
             Token::Operator(op) => write!(f, "{}", op),
-            Token::LParent => f.write_str("("),
-            Token::RParent => f.write_str(")"),
+            Token::LParen => f.write_str("("),
+            Token::RParen => f.write_str(")"),
         }
     }
 }
@@ -64,7 +64,7 @@ impl<'a> Tokenizer<'a> {
 
         while let Some(tok) = self.next_token(&mut peekable)? {
             match &tok {
-                Token::Space | Token::LParent | Token::RParent => self.col += 1,
+                Token::Space | Token::LParen | Token::RParen => self.col += 1,
                 Token::Number(n) => self.col += n.len() as u32,
                 Token::Operator(op) => self.col += op.len() as u32,
             }
@@ -81,8 +81,8 @@ impl<'a> Tokenizer<'a> {
         match chars.peek() {
             Some(&c) => match c {
                 ' ' => self.consume(chars, Token::Space),
-                '(' => self.consume(chars, Token::LParent),
-                ')' => self.consume(chars, Token::RParent),
+                '(' => self.consume(chars, Token::LParen),
+                ')' => self.consume(chars, Token::RParen),
                 '+' | '-' | '*' | '/' | '%' => self.consume(chars, Token::Operator(c.to_string())),
                 '0'..='9' => Ok(Some(Token::Number(
                     self.take_while(chars, |ch| matches!(ch, '0'..='9')),
@@ -166,11 +166,11 @@ mod test {
         let actual_tokens = tokenizer.tokenize().unwrap();
 
         let expected_tokens = vec![
-            Token::LParent,
+            Token::LParen,
             Token::Number(String::from("1")),
             Token::Operator(String::from("+")),
             Token::Number(String::from("2")),
-            Token::RParent,
+            Token::RParen,
             Token::Operator(String::from("*")),
             Token::Number(String::from("3")),
         ];
