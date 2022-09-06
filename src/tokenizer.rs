@@ -7,7 +7,10 @@ use std::str::Chars;
 pub enum Token {
     Space,
     Number(String),
-    Operator(String),
+    Plus,
+    Minus,
+    Mul,
+    Div,
     LParen,
     RParen,
 }
@@ -17,7 +20,10 @@ impl Display for Token {
         match self {
             Token::Space => f.write_str(" "),
             Token::Number(n) => write!(f, "{}", n),
-            Token::Operator(op) => write!(f, "{}", op),
+            Token::Plus => f.write_str("+"),
+            Token::Minus => f.write_str("-"),
+            Token::Mul => f.write_str("*"),
+            Token::Div => f.write_str("/"),
             Token::LParen => f.write_str("("),
             Token::RParen => f.write_str(")"),
         }
@@ -66,7 +72,7 @@ impl<'a> Tokenizer<'a> {
             match &tok {
                 Token::Space | Token::LParen | Token::RParen => self.col += 1,
                 Token::Number(n) => self.col += n.len() as u32,
-                Token::Operator(op) => self.col += op.len() as u32,
+                Token::Plus | Token::Minus | Token::Mul | Token::Div => self.col += 1,
             }
             if tok == Token::Space {
                 continue;
@@ -83,7 +89,10 @@ impl<'a> Tokenizer<'a> {
                 ' ' => self.consume(chars, Token::Space),
                 '(' => self.consume(chars, Token::LParen),
                 ')' => self.consume(chars, Token::RParen),
-                '+' | '-' | '*' | '/' | '%' => self.consume(chars, Token::Operator(c.to_string())),
+                '+' => self.consume(chars, Token::Plus),
+                '-' => self.consume(chars, Token::Minus),
+                '*' => self.consume(chars, Token::Mul),
+                '/' => self.consume(chars, Token::Div),
                 '0'..='9' => Ok(Some(Token::Number(
                     self.take_while(chars, |ch| matches!(ch, '0'..='9')),
                 ))),
@@ -144,17 +153,11 @@ mod test {
 
     #[test]
     fn tokenize_operator() {
-        let operators = String::from("+ - * / %");
+        let operators = String::from("+ - * /");
         let mut tokenizer = Tokenizer::new(&operators);
         let actual_tokens = tokenizer.tokenize().unwrap();
 
-        let expected_tokens = vec![
-            Token::Operator(String::from("+")),
-            Token::Operator(String::from("-")),
-            Token::Operator(String::from("*")),
-            Token::Operator(String::from("/")),
-            Token::Operator(String::from("%")),
-        ];
+        let expected_tokens = vec![Token::Plus, Token::Minus, Token::Mul, Token::Div];
 
         assert_eq!(actual_tokens, expected_tokens)
     }
@@ -168,10 +171,10 @@ mod test {
         let expected_tokens = vec![
             Token::LParen,
             Token::Number(String::from("1")),
-            Token::Operator(String::from("+")),
+            Token::Plus,
             Token::Number(String::from("2")),
             Token::RParen,
-            Token::Operator(String::from("*")),
+            Token::Mul,
             Token::Number(String::from("3")),
         ];
 
